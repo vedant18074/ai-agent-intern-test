@@ -1,0 +1,7 @@
+openai
+python-dotenv
+pydantic
+numpy
+faiss-cpu
+pytest
+streamlit
