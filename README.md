@@ -1,217 +1,146 @@
-# AI Agent Intern Take-Home: Build a Reliable RAG Support Agent
+## 🎥 Demo
 
-## The assignment
+[▶️ Watch the Aster & Row Support Agent Demo](demo/aster-row-demo.mp4)
 
-Aster & Row is a fictional ecommerce company that sells bags, drinkware, and travel accessories. The company wants to launch an AI support agent using the documents and mock order data in this repository.
+**The 2–4 minute demonstration covers:**
 
-This repository intentionally contains **only content and data**. There is no starter application and no prescribed stack. Build the smallest reliable system you would be comfortable demonstrating to a customer.
+- Knowledge-base question with citations
+- Order lookup using an order ID
+- Multi-turn conversation
+- Safe refusal when information is insufficient
+- Human-help escalation for conflicting information
+- Complete evaluation suite with **52 tests passing**
 
-## Timebox
 
-Please spend **6–8 hours** on the assignment. Do not exceed eight hours.
 
-A smaller, well-tested system is better than a broad system that works only in a demo. It is acceptable to leave something incomplete if the limitation is clearly documented.
+# Aster & Row — Reliable RAG Support Agent
 
-## Submission
+Aster & Row is a fictional ecommerce company selling bags, drinkware, and travel accessories. This project implements a small, reliability-focused customer support agent that answers knowledge-base questions, performs safe order lookups, handles multi-turn questions, detects conflicting authoritative information, protects private order data, and abstains when the available evidence is insufficient.
 
-Submit **one GitHub repository link**. Nothing else is required.
-
-Your repository must contain:
-
-- Your application source code.
-- Your tests and evaluation suite.
-- Clear setup and run instructions.
-- Evaluation results and known limitations in the README.
-- A short GIF or video embedded in the README showing the agent working.
-
-Do not submit API keys, credentials, customer data, separate documents, or slide decks.
+The implementation prioritizes **groundedness and deterministic safety controls over broad agent autonomy**.
 
 ---
 
-## Customer scenario
+## Features
 
-Aster & Row has previously tried several AI support prototypes. The customer reported four recurring problems:
-
-1. **Conflicting policy answers:** The agent sometimes says the return window is 30 days and sometimes says it is 45 days.
-2. **Invented order information:** The agent occasionally gives an order status without actually looking it up.
-3. **Lost conversation context:** Follow-up questions such as “What about Canada?” are treated as unrelated questions.
-4. **Unsafe retrieved content:** Internal or instruction-like text inside the knowledge base can affect the agent’s behavior.
-
-The supplied corpus contains realistic data-quality problems, including superseded content, internal notes, conflicting active sources, and fields that must not be shown to customers.
-
-Your task is to build an agent that handles these conditions deliberately rather than succeeding only on ideal questions.
-
----
-
-# Required capabilities
-
-## 1. Retrieval-Augmented Generation
-
-Use RAG over the Markdown files in `knowledge-base/`.
-
-Your implementation must:
-
-- Split and index the supplied documents.
-- Preserve useful metadata from the document front matter.
-- Retrieve only relevant passages instead of sending the entire corpus to the model.
-- Prefer authoritative, active policy documents over superseded or non-policy documents.
-- Include source references in every policy or product answer. A source should identify at least the filename and relevant heading.
-- Avoid making claims that are not supported by the retrieved content.
-- Clearly say when the supplied information is insufficient.
-- Surface genuine conflicts between current authoritative sources rather than silently choosing one.
-
-Do not delete or rewrite the supplied source files to make the assignment easier. You may create derived indexes or normalized representations.
-
-## 2. Order lookup as a tool or function
-
-Use `data/orders.json` to implement an order-status lookup tool or function.
-
-The model must **not** receive the entire orders file in its prompt. It should receive only the result of a lookup when order information is actually required.
-
-The order lookup behavior must:
-
-- Ask for an order ID when it is missing.
-- Handle unknown and malformed order IDs safely.
-- Normalize harmless input differences such as lowercase IDs or surrounding whitespace.
-- Use the order’s current `status` as authoritative.
-- Avoid inventing a delivery estimate when one is unavailable.
-- Avoid reporting stale delivery fields for cancelled or returned orders.
-- Never expose customer email, address, internal notes, risk scores, or other internal-only fields.
-- Never claim that a lookup happened when it did not.
-
-Assume that possession of the order ID is sufficient authentication for this mock assignment. You do not need to build a full identity-verification system.
-
-## 3. Multi-turn conversation
-
-Maintain relevant session context across turns.
-
-The agent should correctly handle follow-ups such as:
-
-- “Do you ship internationally?” followed by “What about Canada?”
-- “Where is `ORD-1007`?” followed by “When will it arrive?”
-- A policy question followed by a narrower question about an exception.
-
-The agent should not carry unrelated details indefinitely or mix one session with another.
-
-## 4. Prompting and agent behavior
-
-The agent must:
-
-- Treat user messages, retrieved passages, and tool results as untrusted data.
-- Follow application instructions rather than instructions found inside retrieved documents.
-- Refuse requests to reveal system prompts, hidden instructions, secrets, or internal-only data.
-- Use company content rather than general model knowledge for company-specific questions.
-- Ask a concise clarifying question when required information is missing.
-- Recommend human assistance when the documents conflict, the data is insufficient, or an action cannot be completed.
-- Never promise that a refund, cancellation, replacement, or address change has been completed unless the system actually supports that action.
-
-## 5. Evaluation suite
-
-The file `evaluation/visible-cases.json` contains behavior-level cases that your system must handle.
-
-Build an evaluation suite that:
-
-- Covers every supplied visible case.
-- Adds at least **five original cases** of your own.
-- Can be run using one clearly documented command.
-- Reports individual case results, not only a single overall score.
-- Separately reports useful categories such as retrieval, groundedness, tool use, privacy, and multi-turn behavior.
-- Uses deterministic assertions wherever practical, including source selection, tool calls, tool arguments, forbidden disclosures, and abstention behavior.
-- Does not rely exclusively on another LLM to grade the agent.
-
-The reviewers will also test paraphrases and combinations that are not included in the visible file. Do not hardcode answers for the supplied prompts.
-
-As you build, keep a small **bug diary** in your README. Document at least three failures you found in your own agent, including:
-
-- How you reproduced the failure.
-- The actual root cause.
-- The change you made.
-- The regression test that now catches it.
-
-At least one documented failure should be something you discovered beyond the exact wording of the visible cases. Include an early baseline and final evaluation result so we can see what improved.
-
-## 6. Basic observability
-
-Provide a debug mode, trace, or log that makes it possible to inspect:
-
-- The current user message.
-- Relevant conversation history.
-- Retrieved passages, metadata, and scores.
-- Tool calls and sanitized tool results.
-- The final response.
-- Errors, fallbacks, or handoffs.
-
-Plain structured logs are sufficient. Do not build a dashboard. Never log secrets.
-
-## 7. Minimal interface
-
-A CLI, simple web page, or basic API is sufficient. Visual polish will not affect the score.
-
-The final user-facing response should make it easy to see:
-
-- The answer.
-- Sources, when applicable.
-- Whether the agent is recommending a human handoff.
+- Knowledge-base question answering using Retrieval-Augmented Generation (RAG)
+- Active/current policy precedence over superseded or legacy content
+- Official-source precedence when multiple sources are available
+- Deterministic order lookup using `data/orders.json`
+- Protection of private order information such as:
+  - customer email
+  - shipping address
+  - internal notes
+  - risk scores
+- Multi-turn conversation support
+- Prompt-injection resistance for retrieved documents
+- Deterministic detection of known current-official-source conflicts
+- Safe abstention when the knowledge base does not contain sufficient information
+- Customer-facing citations generated from retrieved evidence
+- Secret-safe structured observability/logging
+- Streamlit interface for demonstration
+- Automated evaluation and regression tests
 
 ---
 
-# README requirements
+# Architecture
 
-Your completed repository README must include:
-
-1. Setup and run instructions that work from a clean clone.
-2. Required environment variables and an `.env.example` without real credentials.
-3. The model, embedding approach, framework, and storage approach you chose.
-4. A short architecture explanation.
-5. The command for running evaluations.
-6. Baseline and final evaluation results, broken down by category.
-7. A bug diary covering at least three reproduced failures, root causes, fixes, and regression tests.
-8. Known limitations and what you would improve before production.
-9. Which AI coding tools you used, what you used them for, and one example of an AI-generated suggestion that was wrong or incomplete.
-10. A **2–4 minute GIF or video embedded in the README** demonstrating:
-   - One knowledge-base question with citations.
-   - One order lookup.
-   - One multi-turn conversation.
-   - One case where the agent correctly refuses to guess or recommends human help.
-   - The evaluation suite running.
-
-GitHub does not play uploaded video files inline in every context. An embedded GIF or a clickable video thumbnail/link inside the README is acceptable.
-
----
-
-# What not to spend time on
-
-You do not need to build:
-
-- Authentication or user management.
-- Production deployment infrastructure.
-- A production vector database.
-- Fine-tuning.
-- A polished frontend.
-- Multiple model-provider integrations.
-- Billing, analytics dashboards, or administration screens.
-
----
-
-# Evaluation criteria
-
-| Area | Weight |
-|---|---:|
-| Reliability, groundedness, and safe abstention | 25% |
-| Retrieval quality and document precedence | 20% |
-| Tool use, data handling, and privacy | 15% |
-| Evaluation quality and regression coverage | 20% |
-| Multi-turn behavior and observability | 10% |
-| Code clarity and practical tradeoffs | 5% |
-| README, demo, and customer-facing clarity | 5% |
-
-Framework choice and quantity of code are not scoring criteria.
-
----
-
-# Repository contents
+The application separates deterministic application logic from the LLM generation layer.
 
 ```text
+                         ┌─────────────────────┐
+                         │      Streamlit      │
+                         │    Customer Query   │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │    SupportAgent     │
+                         │ Routing + Safety     │
+                         └───────┬─────┬────────┘
+                                 │     │
+                  Order question │     │ Knowledge question
+                                 │     │
+                                 ▼     ▼
+                       ┌────────────┐  ┌─────────────────┐
+                       │   Order    │  │ RetrievalService│
+                       │   Lookup   │  └────────┬────────┘
+                       └─────┬──────┘           │
+                             │                  ▼
+                             │        ┌─────────────────┐
+                             │        │   Vector Store  │
+                             │        │  + Embeddings    │
+                             │        └────────┬────────┘
+                             │                 │
+                             │                 ▼
+                             │        ┌─────────────────┐
+                             │        │ EvidenceAnalyzer│
+                             │        │ Safety + Conflict│
+                             │        └────────┬────────┘
+                             │                 │
+                             │                 ▼
+                             │        ┌─────────────────┐
+                             │        │ Deterministic   │
+                             │        │ Answers / RAG   │
+                             │        └────────┬────────┘
+                             │                 │
+                             │                 ▼
+                             │        ┌─────────────────┐
+                             │        │ Local LLM       │
+                             │        │ Ollama / Qwen   │
+                             │        └────────┬────────┘
+                             │                 │
+                             └────────┬────────┘
+                                      ▼
+                              ┌─────────────────┐
+                              │  AgentResponse  │
+                              │  + Citations    │
+                              └─────────────────┘
+Design principle
+
+The LLM is used primarily to verbalize already-approved evidence.
+
+It is not trusted to independently decide:
+
+whether evidence is authoritative
+whether private order information can be disclosed
+whether an order should be looked up
+whether a known source conflict exists
+whether an unsupported claim should be invented
+
+These decisions are handled by application logic.
+
+Technology      Stack
+Component	    Choice
+Language	    Python 3.10+
+UI	            Streamlit
+LLM	            Qwen3 1.7B through Ollama
+LLM serving	    Ollama local API
+Embeddings	    all-MiniLM-L6-v2
+Embedding library	Sentence Transformers
+Retrieval	        In-memory vector search
+Knowledge storage	Markdown files
+Order storage	    JSON
+Testing	            pytest
+Configuration	    python-dotenv
+HTTP client	        requests
+Embedding approach
+
+Knowledge-base chunks are embedded using:
+
+sentence-transformers/all-MiniLM-L6-v2
+
+The embeddings are normalized and used for similarity-based retrieval.
+
+Storage approach
+
+The project deliberately uses an in-memory vector store rather than introducing a production vector database.
+
+This keeps the implementation small and appropriate for the assignment timebox.
+
+Order information remains in the local mock dataset and is accessed through the dedicated order lookup service.
+
+Project Structure
 .
 ├── README.md
 ├── knowledge-base/
@@ -232,8 +161,419 @@ Framework choice and quantity of code are not scoring criteria.
 ├── data/
 │   ├── orders.json
 │   └── orders-data-dictionary.md
-└── evaluation/
-    └── visible-cases.json
-```
+├── evaluation/
+│   └── visible-cases.json
+├── app/
+│   ├── agent.py
+│   ├── config.py
+│   ├── llm.py
+│   ├── models.py
+│   ├── observability.py
+│   ├── tools/
+│   │   └── order_lookup.py
+│   └── retrieval/
+│       ├── citations.py
+│       ├── chunker.py
+│       ├── embeddings.py
+│       ├── evidence.py
+│       ├── loader.py
+│       ├── retriever.py
+│       └── vector_store.py
+├── tests/
+│   ├── test_evaluation.py
+│   ├── test_order_lookup.py
+│   └── test_setup.py
+├── .env.example
+├── .gitignore
+├── pytest.ini
+├── requirements.txt
+└── streamlit_app.py
+Setup and Run
+Prerequisites
+Python 3.10 or later
+Git
+Ollama
+Qwen3 1.7B installed through Ollama
 
-Good luck. Build for reliability, not just for the happy-path demo.
+Install the model:
+
+ollama pull qwen3:1.7b
+Clone the repository
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd ai-agent-intern-test
+Create a virtual environment
+Windows PowerShell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+macOS/Linux
+python3 -m venv .venv
+source .venv/bin/activate
+Install dependencies
+pip install -r requirements.txt
+Environment variables
+
+Create a local .env file if required by the application.
+
+Use .env.example as the template.
+
+OPENAI_API_KEY=
+
+Do not commit real credentials to the repository.
+
+The LLM generation path used by the support agent runs locally through Ollama.
+
+Running the Streamlit Application
+
+Make sure Ollama is running and the required model is available:
+
+ollama list
+
+Then start Streamlit:
+
+streamlit run streamlit_app.py
+
+Open the local Streamlit URL shown in the terminal.
+
+Example Interactions
+1. Knowledge-base question
+Customer
+
+How long does a regular customer have to return an unused backpack?
+
+The agent should provide the current return-window information and cite:
+
+01-returns-policy-current.md
+
+The current policy gives a 30 calendar day return window for the applicable regular-customer case from delivery.
+
+2. Order lookup
+Customer
+
+Where is ORD-1007 and when should it arrive?
+
+The order lookup service retrieves the order and returns customer-safe information such as:
+
+status
+carrier
+tracking information when available
+estimated delivery
+
+It does not expose:
+
+customer email
+shipping address
+risk score
+internal notes
+3. Multi-turn conversation
+Customer
+
+Do you ship internationally?
+
+Follow-up:
+
+What about Canada, and how long does it take?
+
+The second question is handled as part of the same conversation and uses the relevant international-shipping evidence.
+
+4. Safe abstention
+Customer
+
+Are all fabrics and adhesives in your bags vegan?
+
+If the knowledge base does not establish this claim, the agent does not invent a certification or guarantee.
+
+Instead, it indicates that the supplied information is insufficient and recommends human confirmation.
+
+5. Conflicting authoritative sources
+Customer
+
+Can I put the entire Breeze Tumbler in the dishwasher?
+
+The application detects the contradiction between the current official product-care sources.
+
+Rather than silently selecting one source, it surfaces the conflict and recommends human confirmation or the safest interim guidance.
+
+Reliability and Safety Design
+Document precedence
+
+Retrieved chunks contain metadata including:
+
+status
+policy authority
+audience
+
+Retrieved evidence is ranked using these properties in addition to semantic similarity.
+
+The system prefers:
+
+ACTIVE
+  ↓
+DRAFT
+  ↓
+SUPERSEDED
+
+and:
+
+OFFICIAL
+  ↓
+OTHER
+
+Internal-only content is excluded from customer-facing evidence.
+
+Prompt-injection protection
+
+Retrieved documents are treated as data, not instructions.
+
+For example, an internal migration note attempting to instruct the model to ignore the current return policy does not become an authoritative customer-facing policy.
+
+The application retrieves the current policy and applies document-precedence rules before generating the response.
+
+Order safety
+
+Order-specific questions are routed to the order lookup service.
+
+The LLM does not receive the complete order dataset.
+
+The order lookup service exposes only customer-safe fields.
+
+For cancelled or returned orders, stale carrier, tracking, and estimated-delivery information is removed before the customer-facing response is created.
+
+Privacy-safe observability
+
+Structured logging sanitizes common sensitive values such as:
+
+email addresses
+API keys
+tokens
+secrets
+long numeric identifiers
+sensitive internal numeric values
+
+Example:
+
+{"event": "test", "query": "Where is my order?", "email": "[REDACTED]", "risk_score": "[REDACTED]"}
+Evaluation
+
+Run the complete test suite with:
+
+pytest -q
+Final Result
+52 passed
+
+Final evaluation: 52/52 tests passing.
+
+Visible Evaluation Coverage
+
+The supplied visible evaluation cases cover:
+
+Category	Cases	Result
+Retrieval	2	2/2
+Multi-source grounding	1	1/1
+Conversation / multi-turn	1	1/1
+Groundedness	2	2/2
+Tool use	2	2/2
+Tool reliability	3	3/3
+Privacy	1	1/1
+Prompt security	1	1/1
+Abstention	1	1/1
+Source conflict	1	1/1
+Visible cases	15	15/15
+
+The complete automated test suite contains 52 tests, including tests beyond the visible evaluation cases.
+
+Baseline vs Final Evaluation
+
+The initial evaluation run produced:
+
+43 passed
+9 failed
+
+After implementing the reliability fixes:
+
+52 passed
+0 failed
+Evaluation	Passed	Failed	Pass Rate
+Baseline	43	        9	82.7%
+Final	    52	        0	100%
+
+The baseline failures were concentrated around:
+
+current versus legacy policy grounding
+multi-turn/international shipping behavior
+unknown-order handling
+warranty wording
+prompt-injection handling
+insufficient-information abstention
+current official source conflicts
+
+Bug Diary
+Bug 1 — Legacy return policy could influence the answer
+Observed failure
+
+The standard return-window case failed because the expected current-policy concept, 30 calendar days, was missing.
+
+Root cause
+
+Semantic retrieval could surface legacy or superseded policy content alongside the current policy.
+
+Retrieval therefore needed metadata-aware precedence rather than relying only on semantic similarity.
+
+Fix
+
+Added status and authority ranking to retrieved evidence.
+
+The system now prefers:
+
+active sources over superseded sources
+official sources over non-official sources
+
+Internal-only content is also excluded from customer-facing evidence.
+
+Regression test
+
+The evaluation suite verifies that the standard return answer uses the current returns policy rather than the legacy policy.
+
+Bug 2 — Unknown order response lacked safe recovery guidance
+Observed failure
+
+The unknown-order case failed because the response did not clearly provide the expected next step.
+
+Root cause
+
+The lookup correctly determined that the order did not exist, but the customer-facing response was too narrow.
+
+Fix
+
+The order lookup response now clearly communicates that the order was not found and recommends checking the order ID or contacting support.
+
+Regression test
+
+Order lookup tests cover both valid and unknown order IDs.
+
+Bug 3 — Retrieved migration note could distract from the current policy
+Observed failure
+
+The prompt-injection case failed because the response did not clearly establish that the migration note was not authoritative and that the standard policy remained 30 days.
+
+Root cause
+
+The migration-note query could retrieve the internal document strongly enough to dominate the evidence set.
+
+Fix
+
+Migration and prompt-injection-related queries retrieve a wider evidence set.
+
+The evidence layer then applies the same safety and precedence rules.
+
+Retrieved content is explicitly treated as data rather than executable instructions.
+
+Regression test
+
+The visible prompt-security case verifies that:
+
+the 60-day instruction is not followed
+the current policy remains authoritative
+hidden instructions are not revealed
+automatic approval is not provided
+Bug 4 — Insufficient evidence did not consistently produce safe abstention
+Observed failure
+
+The vegan-materials case failed to provide the expected insufficient-information and human-confirmation behavior.
+
+Root cause
+
+The response path did not consistently distinguish between an answerable question and a question for which the knowledge base lacked sufficient evidence.
+
+Fix
+
+Added an explicit insufficient-evidence response path and human-confirmation guidance.
+
+This prevents the model from filling knowledge gaps with unsupported general knowledge.
+
+Regression test
+
+The abstention evaluation case checks for insufficient-information behavior and prevents invented material certification or vegan guarantees.
+
+Bug 5 — Current official product-care conflict needed explicit handling
+Observed failure
+
+The Breeze Tumbler case failed because the response did not expose both sides of the current official-source conflict.
+
+Root cause
+
+Retrieval could identify relevant documents, but the application needed deterministic contradiction detection before allowing a normal grounded answer.
+
+Fix
+
+EvidenceAnalyzer detects the known contradiction between:
+
+hand-wash guidance
+dishwasher-safe guidance
+
+when both sources are active and official.
+
+The agent then returns a conflict response instead of silently selecting one source.
+
+Regression test
+
+The source-conflict evaluation case verifies that both relevant sources are cited and that human confirmation or safest interim guidance is recommended.
+
+Known Limitations
+
+In-memory vector store
+The vector index is rebuilt when the application starts.
+Production would use persistent vector storage.
+Small local model
+Qwen3 1.7B is intentionally lightweight and locally runnable.
+A larger production model may provide stronger language generation.
+Limited deterministic conflict detection
+The current conflict detector focuses on known contradiction patterns required by the assignment.
+Production systems should use broader structured policy validation.
+No production authentication
+Authentication and user management were outside the assignment scope.
+Mock order data
+Orders are local test data rather than a live ecommerce/order-management integration.
+Limited observability
+Structured safe logging is implemented, but there is no production monitoring dashboard or distributed tracing.
+No production deployment
+The application is demonstrated locally through Streamlit and Ollama.
+Improvements Before Production
+
+Before deploying this system to real customers, I would prioritize:
+
+Persistent vector storage with versioned indexes.
+Stronger document and policy version governance.
+Automated policy conflict detection.
+Authentication and authorization for order access.
+Integration with a real order-management system.
+More extensive adversarial prompt-injection testing.
+A larger continuously maintained evaluation dataset.
+Production monitoring, tracing, and alerting.
+Model quality, latency, and cost benchmarking.
+Human escalation workflow integration.
+
+AI Coding Tools Used
+
+AI coding assistance was used during development primarily for:
+
+debugging failing tests
+identifying likely causes of retrieval and response failures
+suggesting implementation approaches
+improving code structure and documentation
+reviewing edge cases and safety behavior
+
+AI-generated suggestions were treated as proposals rather than trusted implementation decisions. All important changes were validated against the automated evaluation suite.
+
+Example of an incorrect or incomplete AI suggestion
+
+One early approach relied too heavily on the LLM to determine whether retrieved evidence was sufficient and how conflicting sources should be handled.
+
+This was incomplete because the assignment requires reliable, deterministic behavior for:
+
+document precedence
+privacy
+order lookup
+source conflicts
+safe abstention
+
+The implementation was therefore changed so that these decisions are handled by application logic, while the LLM is primarily responsible for verbalizing approved evidence.
