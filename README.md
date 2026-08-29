@@ -1,16 +1,25 @@
-## 🎥 Demo
+<h1 align="center">Aster & Row — Reliable RAG Support Agent</h1>
 
-[▶️ Watch the Aster & Row Support Agent Demo](demo/aster-row-demo.mp4)
+<h2>🎥 Project Demo</h2>
 
-**The 2–4 minute demonstration covers:**
+<video controls width="800">
+  <source src="demo/aster-row-demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
-- Knowledge-base question with citations
-- Order lookup using an order ID
-- Multi-turn conversation
-- Safe refusal when information is insufficient
-- Human-help escalation for conflicting information
-- Complete evaluation suite with **52 tests passing**
+<p>
+  <strong>Demo covers:</strong>
+</p>
 
+<ul>
+  <li>Knowledge-base question with citations</li>
+  <li>Order lookup</li>
+  <li>Multi-turn conversation</li>
+  <li>Safe refusal / human escalation</li>
+  <li>52-test evaluation suite</li>
+</ul>
+
+<hr>
 
 
 # Aster & Row — Reliable RAG Support Agent
