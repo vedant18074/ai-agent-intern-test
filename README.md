@@ -1,19 +1,10 @@
-# Aster & Row — Reliable RAG Support Agent
-
 ## 🎥 Project Demo
 
-[▶️ Watch the 2–4 minute project demonstration](demo/aster-row-demo.mp4)
+> **How to view:** Click the video below, then select **"View raw"** to play the full demonstration.
 
-The demonstration covers:
+[▶️ Aster & Row — Demo Video](demo/aster-row-demo.mp4)
 
-- 📚 Knowledge-base question with citations
-- 📦 Order lookup
-- 💬 Multi-turn conversation
-- 🛡️ Safe refusal / human escalation
-- 🧪 Evaluation suite — **52 tests passed**
-
----
-
+**Demo includes:** KB question with citations • Order lookup • Multi-turn conversation • Safe refusal/human escalation • 52/52 evaluation tests passed
 ## The Assignment
 
 # Aster & Row — Reliable RAG Support Agent
